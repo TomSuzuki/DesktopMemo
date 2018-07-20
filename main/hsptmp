@@ -2,7 +2,7 @@
 #include "user32.as"
  
 #define ctype hexRGB(%1,%2,%3) (%1 | %2 << 8 | %3 << 16)
-#define ctype decRGB(%1) %1 & 0xFF,%1>>8 & 0xFF,%1>>16 & 0xFF
+#define ctype decRGB(%1) %1>>16 & 0xFF,%1>>8 & 0xFF,%1 & 0xFF
 
 	dimtype MsgData,vartype("str")
 
@@ -14,7 +14,7 @@
 	bgscr 0,320,280
 	gsel 0,2
 
-	color decRGB(0xCCCCCC):boxf
+	color decRGB(0xFF0000):boxf
 	color decRGB(0x555555):boxf 0,0,320,32
 
 	objmode 2,0:font "ÉÅÉCÉäÉI",14
