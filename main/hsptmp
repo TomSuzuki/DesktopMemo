@@ -1,62 +1,194 @@
 #include "gdi32.as"
 #include "user32.as"
- 
+#include "obj.as"
+
 #define ctype hexRGB(%1,%2,%3) (%1 | %2 << 8 | %3 << 16)
 #define ctype decRGB(%1) %1>>16 & 0xFF,%1>>8 & 0xFF,%1 & 0xFF
 
+	// 設定
+	ThemeColor1 = 0x555555
+	ThemeColor2 = 0xCCCCCC
+	ThemeColor3 = 0x000000
+	defaultFront = 0
+
+	// 初期化
+	FlgSetup = 0
 	dimtype MsgData,vartype("str")
+	dimtype FlgSetup,vartype("int")
+	dimtype hMesbox,vartype("int")
+	dimtype idMesbox,vartype("int")
+	dimtype dButton,vartype("int")
+	dimtype idButton,vartype("int")
+	dimtype ToggleFront,vartype("int")
 
+	// コマンド関連の設定
 	onexit *Label_Exit
-	oncmd gosub *Label_CtrlEdit,0x0133
-	oncmd gosub *Label_Click,0x0201
-	onkey gosub *Label_Key
 
-	bgscr 0,320,280
-	gsel 0,2
-
-	color decRGB(0xFF0000):boxf
-	color decRGB(0x555555):boxf 0,0,320,32
-
-	objmode 2,0:font "メイリオ",14
-
-	pos 5,32+5
-	mesbox MsgData,ginfo_winx-10,ginfo_winy-32-10,1,0xFFFFFF
-	hMesbox = objinfo(stat,2)
-	ShowScrollBar hMesbox,3,0
-	SetWindowLong hMesbox,-20,0
-	SetWindowPos hMesbox,0,0,0,0,0,$27
-
-	CreateSolidBrush 0xCCCCCC
-	hBrush = stat
+	// ボタン
+	buffer 0,640,640
+	gmode 7,32,32
+		pos 32,0	:picload "image/button_add.bmp",1
+		pos 96,0	:picload "image/button_del.bmp",1
+		pos 160,0	:picload "image/button_front.bmp",1
+		color decRGB(ThemeColor3)
+			boxf 0,0,32,32
+			boxf 64,0,96,32
+			boxf 128,0,160,32
+		color decRGB(ThemeColor1)
+			boxf 0,32,160,64
+		pos -1,32	:gcopy 0,0,0,32,32
+		pos 63,32	:gcopy 0,64,0,32,32
+		pos 127,32:gcopy 0,128,0,32,32
+		color decRGB(ThemeColor2)
+			boxf 0,64,160,96
+		pos -1,64	:gcopy 0,0,0,32,32
+		pos 63,64	:gcopy 0,64,0,32,32
+		pos 127,64:gcopy 0,128,0,32,32
+		color decRGB(ThemeColor2)
+			boxf 0,96,160,128
+		pos -1,96	:gcopy 0,0,0,32,32
+		pos 63,96	:gcopy 0,64,0,32,32
+		pos 127,96:gcopy 0,128,0,32,32
+		
+	// データをロード、無ければウィンドウを1つ
+	gosub*Label_AddWindow
 
 	stop
 
-*Label_CtrlEdit
+// 画面追加
+*Label_AddWindow
+	// 画面
+	bgscr ginfo_newid,ginfo(20),ginfo(21),2,ginfo_wx1+10,ginfo_wy1+10
+	ToggleFront(ginfo(3)) = defaultFront
+	;SetWindowLong hwnd,-16,GetWindowLong(hwnd,-16) | $40000
+	width 280,220
+	gsel ginfo(3),1+ToggleFront(ginfo(3))
 
-	if(lparam == hMesbox){
-		SetTextColor wparam,hexRGB(0,0,0)
-		SetBkColor wparam,0xCCCCCC
-		return hBrush
-	}
+	// 描画
+	color decRGB(ThemeColor1):boxf
+	color decRGB(ThemeColor2):boxf 1,32,ginfo_winx-2,ginfo_winy-2
+
+	// メッセージボックスの設置と設定
+	objmode 2,0:font "メイリオ",14
+	pos 5,32+5
+	mesbox MsgData(ginfo(3)),ginfo_winx-10,ginfo_winy-32-10,1,0xFFFFFF
+	idMesbox(ginfo(3)) = stat
+	hMesbox(ginfo(3)) = objinfo(stat,2)
+	ShowScrollBar hMesbox(ginfo(3)),3,0
+	SetWindowLong hMesbox(ginfo(3)),-20,0
+	SetWindowPos hMesbox(ginfo(3)),0,0,0,0,0,$27
+	CreateSolidBrush 0xCCCCCC
+	hBrush(ginfo(3)) = stat
+
+	// ボタンの設置
+	objsize 32,32
+	objimage 0,0,32,0,64,0,96				:pos 0,0						:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 1
+	objimage 0,64,32,64,64,64,96		:pos ginfo_winx-32,0:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 2
+	objimage 0,128,32,128,64,128,96	:pos ginfo_winx-64,0:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 3
+
+	// 設置完了
+	FlgSetup(ginfo(3)) = 1
+
+	// 画面依存のコマンド
+	oncmd gosub *Label_CtrlEdit,0x0133
+	oncmd gosub *Label_ResizeWindow,0x00005
+	oncmd gosub *Label_Click,0x0201
+	onkey gosub *Label_Key
 
 	return
 
+// ウィンドウを削除
+*Label_DelWindow
+
+	// データファイルを削除
+
+	// 画面の破棄
+	gsel ginfo(3),-1
+	ToggleFront(ginfo(3)) = -1
+
+	// すべてのウィンドウが非表示なら終了
+	Flg = 1
+	repeat ginfo_newid-1,1
+		if(ToggleFront(cnt) != -1){
+			Flg = 0
+			gsel cnt,0
+			break
+		}
+	loop
+	if(Flg):end
+
+	return
+
+// ボタン
+*Label_Button
+	s = stat
+	foreach(idButton)
+		if(s == idButton(cnt)){
+			switch(dButton(cnt))
+			case 1
+				gosub*Label_AddWindow
+				swbreak
+			case 2
+				gosub*Label_DelWindow
+				swbreak
+			case 3
+				
+				swbreak
+			swend
+			break
+		}
+	loop
+
+	return
+
+// ウィンドウリサイズ（リサイズの不具合で使ってない）
+*Label_ResizeWindow
+	if(FlgSetup(ginfo(3)) == 0):return
+	;if(ginfo_winx < 80):width 80,ginfo_winy
+	;if(ginfo_winy < 120):width ginfo_winx,120
+	color decRGB(ThemeColor1):boxf
+	color decRGB(ThemeColor2):boxf 0,32,ginfo_winx,ginfo_winy
+	size = ginfo_winx-10,ginfo_winy-32-10,0,0
+	resizeobj idMesbox(ginfo(3)),size,1
+	return
+
+// メッセージボックスの更新
+*Label_CtrlEdit
+	if(ginfo(3)<1):return
+	if(FlgSetup(ginfo(3)) == 0):return
+	SetTextColor wparam,ThemeColor3
+	SetBkColor wparam,ThemeColor2
+	;dialog "hM：\t"+hMesbox(ginfo(3))+"\nwp：\t"+wparam+"\nlp：\t"+lparam
+	repeat length(hMesbox)-1,1
+		if(hMesbox(cnt) == lparam){
+			gsel cnt
+			break
+		}
+	loop
+	return hBrush(ginfo(3))
+
+// クリックしたときの処理
 *Label_Click
+	gsel ginfo(2),0
 	sendmsg hwnd,0x00A1,2,0
 	return
 
+// キーの設定
 *Label_Key
 	getkey Ctrl,17
 	if(Ctrl == 1){
 		switch(iParam)
-		case 'A'
-			sendmsg hMesbox,0x00B1,0,-1
+		case 'A'	// 全選択
+			sendmsg hMesbox(ginfo(3)),0x00B1,0,-1
 			swbreak
 		swend
 	}
 	return
 
+// 終了時の処理
 *Label_Exit
-	DeleteObject hBrush
+	foreach(hBrush)
+		DeleteObject hBrush(cnt)
+	loop
 	end
 	
