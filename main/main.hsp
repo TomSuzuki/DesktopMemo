@@ -1,0 +1,62 @@
+#include "gdi32.as"
+#include "user32.as"
+ 
+#define ctype hexRGB(%1,%2,%3) (%1 | %2 << 8 | %3 << 16)
+#define ctype decRGB(%1) %1 & 0xFF,%1>>8 & 0xFF,%1>>16 & 0xFF
+
+	dimtype MsgData,vartype("str")
+
+	onexit *Label_Exit
+	oncmd gosub *Label_CtrlEdit,0x0133
+	oncmd gosub *Label_Click,0x0201
+	onkey gosub *Label_Key
+
+	bgscr 0,320,280
+	gsel 0,2
+
+	color decRGB(0xCCCCCC):boxf
+	color decRGB(0x555555):boxf 0,0,320,32
+
+	objmode 2,0:font "ÉÅÉCÉäÉI",14
+
+	pos 5,32+5
+	mesbox MsgData,ginfo_winx-10,ginfo_winy-32-10,1,0xFFFFFF
+	hMesbox = objinfo(stat,2)
+	ShowScrollBar hMesbox,3,0
+	SetWindowLong hMesbox,-20,0
+	SetWindowPos hMesbox,0,0,0,0,0,$27
+
+	CreateSolidBrush 0xCCCCCC
+	hBrush = stat
+
+	stop
+
+*Label_CtrlEdit
+
+	if(lparam == hMesbox){
+		SetTextColor wparam,hexRGB(0,0,0)
+		SetBkColor wparam,0xCCCCCC
+		return hBrush
+	}
+
+	return
+
+*Label_Click
+	sendmsg hwnd,0x00A1,2,0
+	return
+
+*Label_Key
+	getkey Ctrl,17
+	if(Ctrl == 1){
+		switch(iParam)
+		case 'A'
+			sendmsg hMesbox,0x00B1,0,-1
+			swbreak
+		swend
+	}
+	return
+
+*Label_Exit
+	DeleteObject hBrush
+	end
+	
