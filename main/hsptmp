@@ -1,15 +1,25 @@
 #include "gdi32.as"
 #include "user32.as"
 #include "obj.as"
+#include "lib.hsp"
+#include "lib3.hsp"
 
 #define ctype hexRGB(%1,%2,%3) (%1 | %2 << 8 | %3 << 16)
 #define ctype decRGB(%1) %1>>16 & 0xFF,%1>>8 & 0xFF,%1 & 0xFF
 
-	// 設定
-	ThemeColor1 = 0x555555
-	ThemeColor2 = 0xCCCCCC
-	ThemeColor3 = 0x000000
+#packopt hide 1
+
+	// 初期化
 	defaultFront = 0
+
+	// コンフィグのロード
+	notesel notedata
+	enoteload "config.csv"
+	SetConfigData notedata
+		ThemeColor1 = int("$"+LoadConfig("ThemeColor1","0x555555"))
+		ThemeColor2 = int("$"+LoadConfig("ThemeColor2","0xCCCCCC"))
+		ThemeColor3 = int("$"+LoadConfig("ThemeColor3","0x000000"))
+	SaveConfig "config.csv"
 
 	// 初期化
 	FlgSetup = 0
@@ -20,6 +30,7 @@
 	dimtype dButton,vartype("int")
 	dimtype idButton,vartype("int")
 	dimtype ToggleFront,vartype("int")
+	dimtype MsgNote,vartype("str")
 
 	// コマンド関連の設定
 	onexit *Label_Exit
@@ -51,18 +62,51 @@
 		pos 127,96:gcopy 0,128,0,32,32
 		
 	// データをロード、無ければウィンドウを1つ
-	gosub*Label_AddWindow
-
+	dirlist list,"memo/*.dat",0
+	if(stat == 0){
+		FlgNewMemo = 1
+		gosub*Label_AddWindow
+	}else{
+		FlgNewMemo = 0
+		repeat noteinfo(0)
+			notesel list
+			noteget file,cnt
+			noteunsel
+			exist "memo/"+file
+			if(strsize!=-1){
+				notesel notedata
+				noteload "memo/"+file
+				noteget data,0
+				split data,",",x,y,t
+				m = ""
+				repeat noteinfo(0)-1,1
+					noteget data,cnt
+					m = m + data
+				loop
+				noteunsel
+				FlgNewMemo = 0
+				MsgNote(ginfo_newid) = "memo/"+file
+				gosub*Label_AddWindow
+				ToggleFront(ginfo(3)) = int(t)
+				MsgData(ginfo(3)) = m
+				width ,,int(x),int(y)
+				gsel ginfo(3),1+ToggleFront(ginfo(3))
+				objprm idMesbox(ginfo(3)),MsgData(ginfo(3))
+			}
+		loop
+		noteunsel
+	}
+	
 	stop
 
 // 画面追加
 *Label_AddWindow
 	// 画面
-	bgscr ginfo_newid,ginfo(20),ginfo(21),2,ginfo_wx1+10,ginfo_wy1+10
+	bgscr ginfo_newid,ginfo(20),ginfo(21),2,ginfo_wx1+24,ginfo_wy1+24
+	title "Desktop Memo"
 	ToggleFront(ginfo(3)) = defaultFront
 	;SetWindowLong hwnd,-16,GetWindowLong(hwnd,-16) | $40000
 	width 280,220
-	gsel ginfo(3),1+ToggleFront(ginfo(3))
 
 	// 描画
 	color decRGB(ThemeColor1):boxf
@@ -77,7 +121,7 @@
 	ShowScrollBar hMesbox(ginfo(3)),3,0
 	SetWindowLong hMesbox(ginfo(3)),-20,0
 	SetWindowPos hMesbox(ginfo(3)),0,0,0,0,0,$27
-	CreateSolidBrush 0xCCCCCC
+	CreateSolidBrush ThemeColor2
 	hBrush(ginfo(3)) = stat
 
 	// ボタンの設置
@@ -86,13 +130,24 @@
 	objimage 0,64,32,64,64,64,96		:pos ginfo_winx-32,0:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 2
 	objimage 0,128,32,128,64,128,96	:pos ginfo_winx-64,0:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 3
 
-	// 設置完了
+	// ファイル名の決定
+	if(FlgNewMemo){
+		repeat
+			MsgNote(ginfo(3)) = strf("memo/%04d%02d%02d%02d%02d%02d%02d.dat",gettime(0),gettime(1),gettime(3),gettime(4),gettime(5),gettime(6),cnt)
+			exist MsgNote(ginfo(3))
+			if(strsize == -1):break
+			await 1
+		loop
+		gsel ginfo(3),1+ToggleFront(ginfo(3))
+	}
+
+	// 設置完了（フラグの意味なくなってると思う）
 	FlgSetup(ginfo(3)) = 1
 
 	// 画面依存のコマンド
-	oncmd gosub *Label_CtrlEdit,0x0133
 	oncmd gosub *Label_ResizeWindow,0x00005
 	oncmd gosub *Label_Click,0x0201
+	oncmd gosub *Label_CtrlEdit,0x0133
 	onkey gosub *Label_Key
 
 	return
@@ -101,6 +156,8 @@
 *Label_DelWindow
 
 	// データファイルを削除
+	exist MsgNote(ginfo(3))
+	if(strsize != -1):delete MsgNote(ginfo(2))
 
 	// 画面の破棄
 	gsel ginfo(3),-1
@@ -126,13 +183,16 @@
 		if(s == idButton(cnt)){
 			switch(dButton(cnt))
 			case 1
+				FlgNewMemo = 1
 				gosub*Label_AddWindow
 				swbreak
 			case 2
 				gosub*Label_DelWindow
 				swbreak
 			case 3
-				
+				ToggleFront(ginfo(3)) = (ToggleFront(ginfo(3)) == 0)
+				gsel ginfo(2),1+ToggleFront(ginfo(3))
+				gosub*Label_Save
 				swbreak
 			swend
 			break
@@ -150,22 +210,32 @@
 	color decRGB(ThemeColor2):boxf 0,32,ginfo_winx,ginfo_winy
 	size = ginfo_winx-10,ginfo_winy-32-10,0,0
 	resizeobj idMesbox(ginfo(3)),size,1
+	gosub*Label_Save
 	return
 
 // メッセージボックスの更新
 *Label_CtrlEdit
-	if(ginfo(3)<1):return
+	dialog "WP：\t"+wparam+"\nlp：\t"+lparam+"\nhM：\t"+hMesbox(ginfo(3))+"\n：\t"//ここでの割り込みパラメータ（windows側）がおかしい？
+	if(ginfo(3) < 1):return
 	if(FlgSetup(ginfo(3)) == 0):return
 	SetTextColor wparam,ThemeColor3
 	SetBkColor wparam,ThemeColor2
-	;dialog "hM：\t"+hMesbox(ginfo(3))+"\nwp：\t"+wparam+"\nlp：\t"+lparam
 	repeat length(hMesbox)-1,1
 		if(hMesbox(cnt) == lparam){
 			gsel cnt
 			break
 		}
 	loop
+	gosub*Label_Save
 	return hBrush(ginfo(3))
+
+// 保存
+*Label_Save
+	notedata = strf("%d,%d,%d\n%s",ginfo_wx1,ginfo_wy1,ToggleFront(ginfo(3)),MsgData(ginfo(3)))
+	notesel notedata
+	notesave MsgNote(ginfo(3))
+	noteunsel
+	return
 
 // クリックしたときの処理
 *Label_Click
