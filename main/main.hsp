@@ -102,7 +102,9 @@
 // 画面追加
 *Label_AddWindow
 	// 画面
-	bgscr ginfo_newid,ginfo(20),ginfo(21),2,ginfo_wx1+24,ginfo_wy1+24
+	dialog ""
+	bgscr ginfo_newid,ginfo(20),ginfo(21),0,ginfo_wx1+24,ginfo_wy1+24
+	gsel ginfo(3),-1
 	title "Desktop Memo"
 	ToggleFront(ginfo(3)) = defaultFront
 	;SetWindowLong hwnd,-16,GetWindowLong(hwnd,-16) | $40000
@@ -215,18 +217,24 @@
 
 // メッセージボックスの更新
 *Label_CtrlEdit
-	dialog "WP：\t"+wparam+"\nlp：\t"+lparam+"\nhM：\t"+hMesbox(ginfo(3))+"\n：\t"//ここでの割り込みパラメータ（windows側）がおかしい？
+	;dialog "WP：\t"+wparam+"\nlp：\t"+lparam+"\nhM：\t"+hMesbox(ginfo(3))+"\ng3：\t"+ginfo(3)+"\niM：\t"+idMesbox(ginfo(3))//ここでの割り込みパラメータ（windows側）がおかしい？
 	if(ginfo(3) < 1):return
 	if(FlgSetup(ginfo(3)) == 0):return
-	SetTextColor wparam,ThemeColor3
-	SetBkColor wparam,ThemeColor2
-	repeat length(hMesbox)-1,1
-		if(hMesbox(cnt) == lparam){
-			gsel cnt
-			break
-		}
-	loop
-	gosub*Label_Save
+	if(hMesbox(ginfo(3)) != lparam){
+		repeat length(hMesbox)-1,1
+			if(hMesbox(cnt) == lparam){
+				gsel cnt
+				break
+			}
+		loop
+		SetTextColor wparam,ThemeColor3
+		SetBkColor wparam,ThemeColor2
+		gosub*Label_Save
+	}else{
+		SetTextColor wparam,ThemeColor3
+		SetBkColor wparam,ThemeColor2
+		gosub*Label_Save
+	}
 	return hBrush(ginfo(3))
 
 // 保存
