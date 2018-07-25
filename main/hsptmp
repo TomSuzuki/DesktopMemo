@@ -6,6 +6,7 @@
 
 #define ctype hexRGB(%1,%2,%3) (%1 | %2 << 8 | %3 << 16)
 #define ctype decRGB(%1) %1>>16 & 0xFF,%1>>8 & 0xFF,%1 & 0xFF
+#define ctype hexBGR(%1) ((%1 & 0xFF)<<16 | (%1>>8 & 0xFF)<<8 | (%1>>16 & 0xFF))
 
 #packopt hide 1
 
@@ -81,11 +82,13 @@
 				m = ""
 				repeat noteinfo(0)-1,1
 					noteget data,cnt
+					if(cnt != 1):m = m + "\n"
 					m = m + data
 				loop
 				noteunsel
 				FlgNewMemo = 0
 				MsgNote(ginfo_newid) = "memo/"+file
+				defaultFront = int(t)
 				gosub*Label_AddWindow
 				ToggleFront(ginfo(3)) = int(t)
 				MsgData(ginfo(3)) = m
@@ -124,14 +127,19 @@
 	ShowScrollBar hMesbox(ginfo(3)),3,0
 	SetWindowLong hMesbox(ginfo(3)),-20,0
 	SetWindowPos hMesbox(ginfo(3)),0,0,0,0,0,$27
-	CreateSolidBrush ThemeColor2
+	CreateSolidBrush hexBGR(ThemeColor2)
 	hBrush(ginfo(3)) = stat
 
 	// ボタンの設置
 	objsize 32,32
 	objimage 0,0,32,0,64,0,96				:pos 0,0						:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 1
 	objimage 0,64,32,64,64,64,96		:pos ginfo_winx-32,0:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 2
-	objimage 0,128,32,128,64,128,96	:pos ginfo_winx-64,0:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 3
+	if(1 == ToggleFront(ginfo(3))){
+		objimage 0,128,96,128,64,128,96
+	}else{
+		objimage 0,128,32,128,64,128,96
+	}
+	pos ginfo_winx-64,0:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 3
 
 	// ファイル名の決定
 	if(FlgNewMemo){
@@ -196,12 +204,24 @@
 				ToggleFront(ginfo(3)) = (ToggleFront(ginfo(3)) == 0)
 				gsel ginfo(2),1+ToggleFront(ginfo(3))
 				gosub*Label_Save
+				gosub*Label_UpdateButton
 				swbreak
 			swend
 			break
 		}
 	loop
 
+	return
+
+// ボタンの更新（最前面）
+*Label_UpdateButton
+	clrobj s
+	if(1 == ToggleFront(ginfo(3))){
+		objimage 0,128,96,128,64,128,96
+	}else{
+		objimage 0,128,32,128,64,128,96
+	}
+	pos ginfo_winx-64,0:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 3
 	return
 
 // ウィンドウリサイズ（リサイズの不具合で使ってない）
@@ -229,11 +249,11 @@
 			}
 		loop
 		SetTextColor wparam,ThemeColor3
-		SetBkColor wparam,ThemeColor2
+		SetBkColor wparam,hexBGR(ThemeColor2)
 		gosub*Label_Save
 	}else{
 		SetTextColor wparam,ThemeColor3
-		SetBkColor wparam,ThemeColor2
+		SetBkColor wparam,hexBGR(ThemeColor2)
 		gosub*Label_Save
 	}
 	return hBrush(ginfo(3))
