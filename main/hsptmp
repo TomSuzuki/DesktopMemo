@@ -181,7 +181,7 @@
 
 	// すべてのウィンドウが非表示なら終了
 	Flg = 1
-	repeat ginfo_newid-1,1
+	repeat ginfo_newid-ScrMemoBase,ScrMemoBase
 		if(ToggleFront(cnt) != -1){
 			Flg = 0
 			gsel cnt,0
@@ -238,8 +238,6 @@
 // ウィンドウリサイズ（リサイズの不具合で使ってない）
 *Label_ResizeWindow
 	if(FlgSetup(ginfo(3)) == 0):return
-	;if(ginfo_winx < 80):width 80,ginfo_winy
-	;if(ginfo_winy < 120):width ginfo_winx,120
 	color decRGB(ThemeColor1):boxf
 	color decRGB(ThemeColor2):boxf 0,32,ginfo_winx,ginfo_winy
 	size = ginfo_winx-10,ginfo_winy-32-10,0,0
@@ -249,7 +247,6 @@
 
 // メッセージボックスの更新
 *Label_CtrlEdit
-	;dialog "WP：\t"+wparam+"\nlp：\t"+lparam+"\nhM：\t"+hMesbox(ginfo(3))+"\ng3：\t"+ginfo(3)+"\niM：\t"+idMesbox(ginfo(3))//ここでの割り込みパラメータ（windows側）がおかしい？
 	if(ginfo(3) < 1):return
 	if(FlgSetup(ginfo(3)) == 0):return
 	if(hMesbox(ginfo(3)) != lparam){
