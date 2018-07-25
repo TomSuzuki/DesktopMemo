@@ -7,6 +7,11 @@
 #define ctype hexRGB(%1,%2,%3) (%1 | %2 << 8 | %3 << 16)
 #define ctype decRGB(%1) %1>>16 & 0xFF,%1>>8 & 0xFF,%1 & 0xFF
 #define ctype hexBGR(%1) ((%1 & 0xFF)<<16 | (%1>>8 & 0xFF)<<8 | (%1>>16 & 0xFF))
+#define ctype max(%1,%2) (%1<%2)*%2+(%1>=%2)*%1
+
+#enum ImgButton	= 0
+#enum ScrSetting
+#enum ScrMemoBase
 
 #packopt hide 1
 
@@ -30,6 +35,7 @@
 	dimtype idMesbox,vartype("int")
 	dimtype dButton,vartype("int")
 	dimtype idButton,vartype("int")
+	dimtype bmButton,vartype("int")
 	dimtype ToggleFront,vartype("int")
 	dimtype MsgNote,vartype("str")
 
@@ -37,7 +43,7 @@
 	onexit *Label_Exit
 
 	// ボタン
-	buffer 0,640,640
+	buffer ImgButton,640,640
 	gmode 7,32,32
 		pos 32,0	:picload "image/button_add.bmp",1
 		pos 96,0	:picload "image/button_del.bmp",1
@@ -107,7 +113,7 @@
 	// 画面
 	;dialog ""
 	await
-	bgscr ginfo_newid,ginfo(20),ginfo(21),2,ginfo_wx1+24,ginfo_wy1+24
+	bgscr max(ginfo_newid,ScrSetting),ginfo(20),ginfo(21),2,ginfo_wx1+24,ginfo_wy1+24
 	gsel ginfo(3),-1
 	title "Desktop Memo"
 	ToggleFront(ginfo(3)) = defaultFront
@@ -132,14 +138,14 @@
 
 	// ボタンの設置
 	objsize 32,32
-	objimage 0,0,32,0,64,0,96				:pos 0,0						:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 1
-	objimage 0,64,32,64,64,64,96		:pos ginfo_winx-32,0:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 2
+	objimage 0,0,32,0,64,0,96				:pos 0,0						:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 1:bmButton(length(bmButton)) = objinfo_bmscr(stat)
+	objimage 0,64,32,64,64,64,96		:pos ginfo_winx-32,0:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 2:bmButton(length(bmButton)) = objinfo_bmscr(stat)
 	if(1 == ToggleFront(ginfo(3))){
 		objimage 0,128,96,128,64,128,96
 	}else{
 		objimage 0,128,32,128,64,128,96
 	}
-	pos ginfo_winx-64,0:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 3
+	pos ginfo_winx-64,0:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 3:bmButton(length(bmButton)) = objinfo_bmscr(stat)
 
 	// ファイル名の決定
 	if(FlgNewMemo){
@@ -190,8 +196,11 @@
 // ボタン
 *Label_Button
 	s = stat
+	ngsel = ginfo_sel
+	gsel ginfo_act
+	mref bmscr,67
 	foreach(idButton)
-		if(s == idButton(cnt)){
+		if(s == idButton(cnt) && bmButton(cnt) == varptr(bmscr)){
 			switch(dButton(cnt))
 			case 1
 				FlgNewMemo = 1
@@ -202,7 +211,7 @@
 				swbreak
 			case 3
 				ToggleFront(ginfo(3)) = (ToggleFront(ginfo(3)) == 0)
-				gsel ginfo(2),1+ToggleFront(ginfo(3))
+				gsel ginfo(3),1+ToggleFront(ginfo(3))
 				gosub*Label_Save
 				gosub*Label_UpdateButton
 				swbreak
@@ -210,6 +219,8 @@
 			break
 		}
 	loop
+
+	gsel ngsel
 
 	return
 
