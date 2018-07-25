@@ -113,11 +113,7 @@
 	// ‰æ–Ê
 	;dialog ""
 	await
-<<<<<<< HEAD
-	bgscr ginfo_newid,ginfo(20),ginfo(21),2,ginfo_wx1+24,ginfo_wy1+24
-=======
 	bgscr max(ginfo_newid,ScrSetting),ginfo(20),ginfo(21),2,ginfo_wx1+24,ginfo_wy1+24
->>>>>>> master
 	gsel ginfo(3),-1
 	title "Desktop Memo"
 	ToggleFront(ginfo(3)) = defaultFront
