@@ -111,7 +111,6 @@
 // 画面追加
 *Label_AddWindow
 	// 画面
-	;dialog ""
 	await
 	bgscr max(ginfo_newid,ScrSetting),ginfo(20),ginfo(21),2,ginfo_wx1+24,ginfo_wy1+24
 	gsel ginfo(3),-1
@@ -212,6 +211,7 @@
 			case 3
 				ToggleFront(ginfo(3)) = (ToggleFront(ginfo(3)) == 0)
 				gsel ginfo(3),1+ToggleFront(ginfo(3))
+				c = cnt
 				gosub*Label_Save
 				gosub*Label_UpdateButton
 				swbreak
@@ -232,7 +232,7 @@
 	}else{
 		objimage 0,128,32,128,64,128,96
 	}
-	pos ginfo_winx-64,0:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 3
+	pos ginfo_winx-64,0:button gosub "",*Label_Button:idButton(length(c)) = stat:dButton(length(c)) = 3
 	return
 
 // ウィンドウリサイズ（リサイズの不具合で使ってない）
