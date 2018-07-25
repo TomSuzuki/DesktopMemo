@@ -102,8 +102,9 @@
 // âÊñ í«â¡
 *Label_AddWindow
 	// âÊñ 
-	dialog ""
-	bgscr ginfo_newid,ginfo(20),ginfo(21),0,ginfo_wx1+24,ginfo_wy1+24
+	;dialog ""
+	await
+	bgscr ginfo_newid,ginfo(20),ginfo(21),2,ginfo_wx1+24,ginfo_wy1+24
 	gsel ginfo(3),-1
 	title "Desktop Memo"
 	ToggleFront(ginfo(3)) = defaultFront
@@ -249,6 +250,7 @@
 *Label_Click
 	gsel ginfo(2),0
 	sendmsg hwnd,0x00A1,2,0
+	gosub*Label_Save
 	return
 
 // ÉLÅ[ÇÃê›íË
