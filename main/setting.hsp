@@ -1,0 +1,77 @@
+#include "lib.hsp"
+#include "lib3.hsp"
+
+#define ctype decRGB(%1) %1>>16 & 0xFF,%1>>8 & 0xFF,%1 & 0xFF
+
+	tscreen 0,320,240,8
+	title "desktop memo setting"
+
+	// コンフィグのロード
+	notesel notedata
+	enoteload "config.csv"
+	SetConfigData notedata
+		ThemeColor1 = int("$"+LoadConfig("ThemeColor1","0x111111"))
+		ThemeColor2 = int("$"+LoadConfig("ThemeColor2","0x444444"))
+		ThemeColor3 = int("$"+LoadConfig("ThemeColor3","0xEEEEEE"))
+		SystemFont = LoadConfig("SystemFont","メイリオ")
+		SystemFontSize = int(LoadConfig("SystemFontSize","14"))
+	SaveConfig "config.csv"
+
+	// 設定など
+	ThemeColorType = 0
+	ThemeColorMsg = "変更しない\n白\n黒\n灰色\n赤\n青\n緑"
+	FontType = 0
+	FontMsg = "変更しない\nMS ゴシック\nMS 明朝\nメイリオ\n游ゴシック\n游明朝"
+	FontSizeType = 0
+	FontSizeMsg = "変更しない\n10\n12\n14\n16\n18\n20\n22\n24"
+	
+	SetThemeColor1 = ThemeColor1,0xCCCCCC,0x111111,0xCCCCCC,0xCC3333,0x3333CC,0x33CC33
+	SetThemeColor2 = ThemeColor2,0xFFFFFF,0x444444,0xAAAAAA,0xFF5555,0x5555FF,0x55FF55
+	SetThemeColor3 = ThemeColor3,0x111111,0xEEEEEE,0x222222,0xFFFFFF,0xFFFFFF,0x000000
+	SetSystemFont = SystemFont,msgothic,msmincho,"メイリオ","游ゴシック","游明朝"
+	SetSystemFontSize = SystemFontSize,10,12,14,16,18,20,22,24
+
+	syscolor 12:boxf:font "メイリオ",12
+	syscolor 8
+	pos 12,12:mes "設定　(config.csv)"
+	
+	objsize 180,24:objmode 2,0
+
+	pos 12,40:mes "テーマカラー"
+	pos 120,35:combox ThemeColorType,256,ThemeColorMsg
+
+	pos 12,70:mes "フォント"
+	pos 120,65:combox FontType,256,FontMsg
+
+	pos 12,100:mes "フォントサイズ"
+	pos 120,95:combox FontSizeType,256,FontSizeMsg
+
+	objsize 80,24
+	pos 220,130:button "決定",*Label_Exit
+
+	// サンプル
+	repeat
+		redraw 0,0,160,320,240
+
+		color decRGB(SetThemeColor1.ThemeColorType):boxf 10,160,310,230
+		color decRGB(SetThemeColor2.ThemeColorType):boxf 11,180,309,229
+		color decRGB(SetThemeColor3.ThemeColorType):font SetSystemFont.FontType,SetSystemFontSize.FontSizeType
+		pos 15,185:mes "サンプルテキスト"
+
+		redraw 1,0,160,320,240
+		await 1000/30
+	loop
+
+*Label_Exit
+	
+	notesel notedata
+	enoteload "config.csv"
+	SetConfigData notedata
+		UpdateConfig "ThemeColor1",strf("0x%06X",SetThemeColor1.ThemeColorType)
+		UpdateConfig "ThemeColor2",strf("0x%06X",SetThemeColor2.ThemeColorType)
+		UpdateConfig "ThemeColor3",strf("0x%06X",SetThemeColor3.ThemeColorType)
+		UpdateConfig "SystemFont",str(SetSystemFont.FontType)
+		UpdateConfig "SystemFontSize",str(SetSystemFontSize.FontSizeType)
+	SaveConfig "config.csv"
+	end
+	

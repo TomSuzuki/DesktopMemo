@@ -25,6 +25,8 @@
 		ThemeColor1 = int("$"+LoadConfig("ThemeColor1","0x555555"))
 		ThemeColor2 = int("$"+LoadConfig("ThemeColor2","0xCCCCCC"))
 		ThemeColor3 = int("$"+LoadConfig("ThemeColor3","0x000000"))
+		SystemFont = LoadConfig("SystemFont","メイリオ")
+		SystemFontSize = int(LoadConfig("SystemFontSize","14"))
 	SaveConfig "config.csv"
 
 	// 初期化
@@ -124,7 +126,7 @@
 	color decRGB(ThemeColor2):boxf 1,32,ginfo_winx-2,ginfo_winy-2
 
 	// メッセージボックスの設置と設定
-	objmode 2,0:font "メイリオ",14
+	objmode 2,0:font SystemFont,SystemFontSize
 	pos 5,32+5
 	mesbox MsgData(ginfo(3)),ginfo_winx-10,ginfo_winy-32-10,1,0xFFFFFF
 	idMesbox(ginfo(3)) = stat
