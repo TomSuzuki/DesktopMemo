@@ -10,7 +10,7 @@
 #define ctype max(%1,%2) (%1<%2)*%2+(%1>=%2)*%1
 
 #enum ImgButton	= 0
-#enum ScrSetting
+#enum ScrSetting//別アプリケーションでいいのでは？？
 #enum ScrMemoBase
 
 #packopt hide 1
