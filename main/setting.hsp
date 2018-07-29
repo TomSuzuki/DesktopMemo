@@ -1,10 +1,24 @@
 #include "lib.hsp"
 #include "lib3.hsp"
+#include "kernel32.as"
 
+#define ERROR_ALREADY_EXISTS $B7
 #define ctype decRGB(%1) %1>>16 & 0xFF,%1>>8 & 0xFF,%1 & 0xFF
+
+#packopt hide 1
+
+	gsel 0,-1
+	CreateMutex 0,0,"desktopmemosetting"
+	GetLastError
+	if stat = ERROR_ALREADY_EXISTS {
+		dialog "すでに起動しています。"
+		end
+	}
 
 	tscreen 0,320,240,8
 	title "desktop memo setting"
+	gsel 0,2
+	gsel 0,1
 
 	// コンフィグのロード
 	notesel notedata
@@ -33,7 +47,7 @@
 
 	syscolor 12:boxf:font "メイリオ",12
 	syscolor 8
-	pos 12,12:mes "設定　(config.csv)"
+	pos 12,12:mes "設定　（決定後、本体を再起動してください）"
 	
 	objsize 180,24:objmode 2,0
 
