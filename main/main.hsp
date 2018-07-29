@@ -25,6 +25,8 @@
 		ThemeColor1 = int("$"+LoadConfig("ThemeColor1","0x555555"))
 		ThemeColor2 = int("$"+LoadConfig("ThemeColor2","0xCCCCCC"))
 		ThemeColor3 = int("$"+LoadConfig("ThemeColor3","0x000000"))
+		SystemFont = LoadConfig("SystemFont","メイリオ")
+		SystemFontSize = int(LoadConfig("SystemFontSize","14"))
 	SaveConfig "config.csv"
 
 	// 初期化
@@ -48,25 +50,18 @@
 		pos 32,0	:picload "image/button_add.bmp",1
 		pos 96,0	:picload "image/button_del.bmp",1
 		pos 160,0	:picload "image/button_front.bmp",1
+		pos 224,0	:picload "image/button_setting.bmp",1
 		color decRGB(ThemeColor3)
-			boxf 0,0,32,32
-			boxf 64,0,96,32
-			boxf 128,0,160,32
+			repeat 4:boxf 64*cnt,0,32+64*cnt,32:loop
 		color decRGB(ThemeColor1)
-			boxf 0,32,160,64
-		pos -1,32	:gcopy 0,0,0,32,32
-		pos 63,32	:gcopy 0,64,0,32,32
-		pos 127,32:gcopy 0,128,0,32,32
+			repeat 4:boxf 64*cnt,32,64+64*cnt,64:loop
+			repeat 4:pos -1+cnt*64,32	:gcopy 0,64*cnt,0,32,32:loop
 		color decRGB(ThemeColor2)
-			boxf 0,64,160,96
-		pos -1,64	:gcopy 0,0,0,32,32
-		pos 63,64	:gcopy 0,64,0,32,32
-		pos 127,64:gcopy 0,128,0,32,32
+			repeat 4:boxf 64*cnt,64,64+64*cnt,96:loop
+			repeat 4:pos -1+cnt*64,64	:gcopy 0,64*cnt,0,32,32:loop
 		color decRGB(ThemeColor2)
-			boxf 0,96,160,128
-		pos -1,96	:gcopy 0,0,0,32,32
-		pos 63,96	:gcopy 0,64,0,32,32
-		pos 127,96:gcopy 0,128,0,32,32
+			repeat 4:boxf 64*cnt,96,64+64*cnt,128:loop
+			repeat 4:pos -1+cnt*64,96	:gcopy 0,64*cnt,0,32,32:loop
 		
 	// データをロード、無ければウィンドウを1つ
 	dirlist list,"memo/*.dat",0
@@ -124,7 +119,7 @@
 	color decRGB(ThemeColor2):boxf 1,32,ginfo_winx-2,ginfo_winy-2
 
 	// メッセージボックスの設置と設定
-	objmode 2,0:font "メイリオ",14
+	objmode 2,0:font SystemFont,SystemFontSize
 	pos 5,32+5
 	mesbox MsgData(ginfo(3)),ginfo_winx-10,ginfo_winy-32-10,1,0xFFFFFF
 	idMesbox(ginfo(3)) = stat
@@ -139,6 +134,7 @@
 	objsize 32,32
 	objimage 0,0,32,0,64,0,96				:pos 0,0						:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 1:bmButton(length(bmButton)) = objinfo_bmscr(stat)
 	objimage 0,64,32,64,64,64,96		:pos ginfo_winx-32,0:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 2:bmButton(length(bmButton)) = objinfo_bmscr(stat)
+	objimage 0,192,32,192,64,192,96	:pos ginfo_winx-96,0:button gosub "",*Label_Button:idButton(length(idButton)) = stat:dButton(length(dButton)) = 4:bmButton(length(bmButton)) = objinfo_bmscr(stat)
 	if(1 == ToggleFront(ginfo(3))){
 		objimage 0,128,96,128,64,128,96
 	}else{
@@ -214,6 +210,9 @@
 				c = cnt
 				gosub*Label_Save
 				gosub*Label_UpdateButton
+				swbreak
+			case 4
+				exec "./desktopmemosetting.exe"
 				swbreak
 			swend
 			break
