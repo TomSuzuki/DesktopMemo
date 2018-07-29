@@ -29,6 +29,10 @@
 		SystemFontSize = int(LoadConfig("SystemFontSize","14"))
 	SaveConfig "config.csv"
 
+	// フォルダのチェック
+	dirlist list,"memo",5
+	if(stat=0):mkdir "memo"
+
 	// 初期化
 	FlgSetup = 0
 	dimtype MsgData,vartype("str")
