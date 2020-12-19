@@ -6,6 +6,9 @@
 #define ctype decRGB(%1) %1>>16 & 0xFF,%1>>8 & 0xFF,%1 & 0xFF
 
 #packopt hide 1
+#packopt name "desktopmemosetting"
+
+#define global ConfigFile "../config.csv"
 
 	gsel 0,-1
 	CreateMutex 0,0,"desktopmemosetting"
@@ -22,14 +25,14 @@
 
 	// コンフィグのロード
 	notesel notedata
-	enoteload "config.csv"
+	enoteload ConfigFile
 	SetConfigData notedata
 		ThemeColor1 = int("$"+LoadConfig("ThemeColor1","0x111111"))
 		ThemeColor2 = int("$"+LoadConfig("ThemeColor2","0x444444"))
 		ThemeColor3 = int("$"+LoadConfig("ThemeColor3","0xEEEEEE"))
 		SystemFont = LoadConfig("SystemFont","メイリオ")
 		SystemFontSize = int(LoadConfig("SystemFontSize","14"))
-	SaveConfig "config.csv"
+	SaveConfig ConfigFile
 
 	// 設定など
 	ThemeColorType = 0
@@ -79,13 +82,13 @@
 *Label_Exit
 	
 	notesel notedata
-	enoteload "config.csv"
+	enoteload ConfigFile
 	SetConfigData notedata
 		UpdateConfig "ThemeColor1",strf("0x%06X",SetThemeColor1.ThemeColorType)
 		UpdateConfig "ThemeColor2",strf("0x%06X",SetThemeColor2.ThemeColorType)
 		UpdateConfig "ThemeColor3",strf("0x%06X",SetThemeColor3.ThemeColorType)
 		UpdateConfig "SystemFont",str(SetSystemFont.FontType)
 		UpdateConfig "SystemFontSize",str(SetSystemFontSize.FontSizeType)
-	SaveConfig "config.csv"
+	SaveConfig ConfigFile
 	end
 	
