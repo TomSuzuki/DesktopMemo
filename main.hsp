@@ -1,8 +1,9 @@
 #include "gdi32.as"
 #include "user32.as"
 #include "obj.as"
-#include "lib.hsp"
-#include "lib3.hsp"
+
+#include "./src/lib.hsp"
+#include "./src/lib3.hsp"
 
 #define ctype hexRGB(%1,%2,%3) (%1 | %2 << 8 | %3 << 16)
 #define ctype decRGB(%1) %1>>16 & 0xFF,%1>>8 & 0xFF,%1 & 0xFF
@@ -216,7 +217,7 @@
 				gosub*Label_UpdateButton
 				swbreak
 			case 4
-				exec "./desktopmemosetting.exe"
+				exec "./bin//desktopmemosetting.exe"
 				swbreak
 			swend
 			break
