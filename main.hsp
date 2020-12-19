@@ -217,7 +217,7 @@
 				gosub*Label_UpdateButton
 				swbreak
 			case 4
-				exec "./bin//desktopmemosetting.exe"
+				exec "./bin/desktopmemosetting.exe"
 				swbreak
 			swend
 			break
